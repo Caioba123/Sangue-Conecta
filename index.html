@@ -3160,7 +3160,8 @@ FIM DA DOCUMENTAÇÃO
     if (btn.tagName === 'A' && btn.getAttribute('href') &&
         !btn.getAttribute('href').startsWith('#')) return;
 
-    if (raw.includes('sair') || raw.includes('logout')) {
+    // CORREÇÃO: Usa RegEx para validar apenas a palavra "sair" ou "logout" isoladas
+    if (/\b(sair|logout)\b/i.test(raw)) {
       try {
         localStorage.removeItem('sangueConectaSession');
         localStorage.removeItem('sangue_conecta_session');
