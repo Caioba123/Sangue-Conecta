@@ -3098,9 +3098,7 @@ FIM DA DOCUMENTAÇÃO
 <!-- SOURCE-NOTE 2828: Preserve semantic structure, keep demo data marked, and route real integrations through service boundaries. -->
 
 <script>
-/* SANGUE CONECTA - EVENT BRIDGE / BUTTON REPAIR
-   Preserves the existing structure and safely connects common UI actions.
-*/
+/* SANGUE CONECTA - EVENT BRIDGE / BUTTON REPAIR (FIXED) */
 (function () {
   'use strict';
 
@@ -3156,11 +3154,11 @@ FIM DA DOCUMENTAÇÃO
       btn.getAttribute('title') || ''
     ].join(' ').trim().toLowerCase();
 
-    // Never interfere with explicit external links.
+    // Ignora links externos
     if (btn.tagName === 'A' && btn.getAttribute('href') &&
         !btn.getAttribute('href').startsWith('#')) return;
 
-    // CORREÇÃO: Usa RegEx para validar apenas a palavra "sair" ou "logout" isoladas
+    // Logout estrito (somente na palavra exata "sair" ou "logout")
     if (/\b(sair|logout)\b/i.test(raw)) {
       try {
         localStorage.removeItem('sangueConectaSession');
@@ -3171,19 +3169,13 @@ FIM DA DOCUMENTAÇÃO
       return;
     }
 
+    // FIX: Rola direto para a seção de doações sem interagir com o botão de login/entrar
     if (raw.includes('minhas doações') || raw.includes('minhas doacoes')) {
-      const logged = !!(localStorage.getItem('sangueConectaSession') ||
-                        localStorage.getItem('sangue_conecta_session') ||
-                        localStorage.getItem('sangueConectaUser'));
-      if (!logged) {
-        const auth = qsa('button, [role="button"], a').find(x =>
-          /entrar|login|criar conta|cadastro/i.test(x.textContent || ''));
-        if (auth && auth !== btn) auth.click();
-        else clickFirst(['#authModal','#loginModal','.auth-modal','.login-modal']);
-      } else {
-        scrollToSection('doacoes') || scrollToSection('minhas-doacoes') ||
-        clickFirst(['[data-section="doacoes"]']);
-      }
+      ev.preventDefault(); // Impede comportamento padrão de reload caso seja um link
+      scrollToSection('doacoes') || 
+      scrollToSection('minhas-doacoes') || 
+      scrollToSection('historico') ||
+      clickFirst(['[data-section="doacoes"]']);
       return;
     }
 
@@ -3194,7 +3186,6 @@ FIM DA DOCUMENTAÇÃO
     }
 
     if (raw.includes('quero participar') || raw.includes('agendar')) {
-      // Prefer the existing modal/button implementation.
       const explicit = btn.getAttribute('data-target') || btn.dataset.modal;
       if (explicit) {
         const target = document.querySelector(explicit) || document.getElementById(explicit.replace(/^#/,''));
@@ -3204,7 +3195,6 @@ FIM DA DOCUMENTAÇÃO
           return;
         }
       }
-      // Fallback: activate a likely scheduling modal.
       const modal = qsa('.modal, [role="dialog"], .modal-overlay').find(m =>
         /agend|particip|doador/i.test(m.id + ' ' + m.className + ' ' + m.textContent));
       if (modal) {
@@ -3240,17 +3230,12 @@ FIM DA DOCUMENTAÇÃO
     }
   }, true);
 
-  // Ensure dynamically-created buttons also receive pointer affordance.
   qsa('button, [role="button"], .btn, a').forEach(el => {
     if (getComputedStyle(el).cursor === 'auto') el.style.cursor = 'pointer';
   });
 
-  // ESC closes overlays.
   document.addEventListener('keydown', e => {
     if (e.key === 'Escape') closeModal();
   });
 })();
 </script>
-
-</body>
-</html>
